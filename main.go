@@ -1,25 +1,28 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 var task string
-var msg string
 
 type requestBody struct {
 	Message string `json:"message"`
 }
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
-	message := requestBody{Message: "message"}
-	tasks := requestBody{Message: "Hello, world!"}
+	taskRequestBody := requestBody{Message: "Hello, world!"}
+	taskToJson, errTaskToJson := json.Marshal(taskRequestBody)
+	if errTaskToJson != nil {
+		fmt.Println("Ошибка маршалинга", errTaskToJson)
+		return
+	}
 	if r.Method == http.MethodPost {
-		fmt.Fprintf(w, "Получено: %s и %s\n", message, tasks)
-		task = string(tasks.Message)
-		msg = string(message.Message)
+		fmt.Fprintf(w, "Получено: %s\n", taskToJson)
+		task = string(taskToJson)
 	} else {
 		fmt.Fprintln(w, "Поддерживается только метод POST")
 	}
@@ -27,7 +30,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		fmt.Fprintf(w, `{"%s":"%s"}`, msg, task)
+		fmt.Fprintf(w, `%s`, task)
 	} else {
 		fmt.Fprintln(w, "Поддерживается только метод GET")
 	}
