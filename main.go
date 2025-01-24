@@ -14,15 +14,14 @@ type requestBody struct {
 }
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
-	taskRequestBody := requestBody{Message: "Hello, world!"}
-	taskToJson, errTaskToJson := json.Marshal(taskRequestBody)
-	if errTaskToJson != nil {
-		fmt.Println("Ошибка маршалинга", errTaskToJson)
-		return
-	}
 	if r.Method == http.MethodPost {
-		fmt.Fprintf(w, "Получено: %s\n", taskToJson)
-		task = string(taskToJson)
+		var reqBody requestBody
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			http.Error(w, "Ошибка декодирования:", http.StatusBadRequest)
+			return
+		}
+		task = reqBody.Message
+		fmt.Fprintf(w, "Получено: %s\n", task)
 	} else {
 		fmt.Fprintln(w, "Поддерживается только метод POST")
 	}
@@ -30,7 +29,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		fmt.Fprintf(w, `%s`, task)
+		fmt.Fprintf(w, "Hello, %s\n", task)
 	} else {
 		fmt.Fprintln(w, "Поддерживается только метод GET")
 	}
